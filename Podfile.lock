@@ -1,0 +1,24 @@
+PODS:
+  - FeedKit (9.0.0)
+  - Introspect (0.0.6)
+  - SwiftUIRefresh (0.0.2):
+    - Introspect (~> 0.0.6)
+
+DEPENDENCIES:
+  - FeedKit (~> 9.0)
+  - SwiftUIRefresh
+
+SPEC REPOS:
+  trunk:
+    - FeedKit
+    - Introspect
+    - SwiftUIRefresh
+
+SPEC CHECKSUMS:
+  FeedKit: 9ffa2434af293df73ac069129900498b3f89cb2e
+  Introspect: 3575a13dbece038e564e4375eeac2117e64a0242
+  SwiftUIRefresh: 3daa095596b5a624ea67fd0174997026b339a5bc
+
+PODFILE CHECKSUM: 890aa3dbb489983b6817a78319ff16203b69eb8d
+
+COCOAPODS: 1.8.4
