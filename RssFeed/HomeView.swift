@@ -5,13 +5,13 @@ struct HomeView: View {
     
     @State var isAbout = false
     
-    @EnvironmentObject private var data: Data
+    @EnvironmentObject private var data: Feed
     
     var body: some View {
         NavigationView {
             List {
                 NavigationLink(destination: FeedView()) {
-                    RbcHeaderView(updated: data.updeted).frame(height: 100)
+                    RbcHeaderView(updated: data.pubDate).frame(height: 100)
                 }
             }
             .navigationBarTitle(
@@ -24,14 +24,14 @@ struct HomeView: View {
                 AboutView()
             }
         }.onAppear {
-            if self.data.isLoadedAtLeastOnce {
+            
+            guard !self.data.atOnce else {
                 return
             }
-            
-            loadData(to: self.data)
-            
-            print("start loading feed")
-            self.data.isLoadedAtLeastOnce = true
+            self.data.load(Completor(
+                onComplete: {},
+                onImagesComplete: {}
+            ))
         }
     }
 }

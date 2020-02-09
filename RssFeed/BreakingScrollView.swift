@@ -26,15 +26,14 @@ struct BreakingView: View {
                         alignment: .top, spacing: 0
                     ) {
                         ForEach(
-                            self.data.items.keys.sorted().reversed(),
+                            self.data.breakings.keys.sorted().reversed(),
                             id: \.self
                         ) { key in
                             
                             ZStack {
-                                if self.data.items[key] != nil
-                                    && self.data.items[key]!.isBreaking {
+                                if self.data.breakings[key] != nil {
                                     BreakingNewsItemView(
-                                        item: self.data.items[key]!
+                                        key: key
                                     ).frame(
                                         width: geo.size.height * 0.6
                                     ).padding(.leading, 15)
@@ -46,7 +45,7 @@ struct BreakingView: View {
                                     
                                     NavigationLink(
                                         destination: NewsDetailView(
-                                            link: self.data.items[key]!.link
+                                            link: self.data.breakings[key]!.link
                                         ),
                                         tag: key,
                                         selection: self.$action

@@ -2,7 +2,9 @@ import SwiftUI
 
 struct BreakingNewsItemView: View {
     
-    var item: feedItem
+    var key: String
+    
+    @EnvironmentObject private var data: Feed
     
     let scale: CGFloat = 0.5
     
@@ -12,12 +14,12 @@ struct BreakingNewsItemView: View {
                 VStack {
                     ZStack {
                         VStack {
-                            if self.item.image != nil {
-                                Image(self.item.image!, scale: 1.0, label: Text(""))
+                            if self.data.images[self.key] != nil {
+                                Image(self.data.images[self.key]!, scale: 1.0, label: Text(""))
                                     .resizable()
                                     .aspectScale(
-                                        srcW: CGFloat(self.item.image!.width),
-                                        srcH: CGFloat(self.item.image!.height),
+                                        srcW: CGFloat(self.data.images[self.key]!.width),
+                                        srcH: CGFloat(self.data.images[self.key]!.height),
                                         dstW: geometry.size.width,
                                         dstH: geometry.size.height * self.scale
                                     )
@@ -26,7 +28,7 @@ struct BreakingNewsItemView: View {
                             Spacer()
                         }
                         VStack {
-                            Image("").frame(
+                            Text("").frame(
                                 width:geometry.size.width,
                                 height: geometry.size.height * self.scale
                             ).background(
@@ -54,7 +56,7 @@ struct BreakingNewsItemView: View {
                 VStack {
                     Spacer()
                     HStack {
-                        Text(self.item.title ?? "")
+                        Text(self.data.breakings[self.key]?.title ?? "")
                             .font(.headline)
                             .shadow(color: Color(.white), radius: 15, x: 0.0, y: 0.0)
                         Spacer()
@@ -62,7 +64,7 @@ struct BreakingNewsItemView: View {
                     HStack {
                         
                         Text(
-                            makeDateString(self.item.pubDate)
+                            makeDateString(self.data.breakings[self.key]?.pubDate)
                         )
                         .foregroundColor(Color(.systemBlue))
                         Spacer()
@@ -70,13 +72,13 @@ struct BreakingNewsItemView: View {
                     }.padding(.top, geometry.size.height * 0.02)
                     
                     HStack {
-                        Text(self.item.description ?? "")
+                        Text(self.data.breakings[self.key]?.description ?? "")
                         Spacer()
                     }.padding(.top, geometry.size.height * 0.02)
                     
                     HStack {
                         Spacer()
-                        Text(self.item.author ?? ""
+                        Text(self.data.breakings[self.key]?.author ?? ""
                         ).foregroundColor(Color(.lightGray))
                     }.padding(.top, geometry.size.height * 0.02)
                 }.padding()
@@ -91,7 +93,7 @@ struct BreakingNewsItemView: View {
 
 struct BreakingNewsItemView_Previews: PreviewProvider {
     static var previews: some View {
-        BreakingNewsItemView(item: feedItem(id: "123"))
+        BreakingNewsItemView(key: "123")
             .previewLayout(.fixed(width: 300, height: 600)).background(Color(
             .sRGB, red: 1.0, green: 0.35, blue: 0.3
         ))

@@ -5,7 +5,7 @@ struct FeedView: View {
 
     @State var action: String? = ""
     
-    @EnvironmentObject private var data: Data
+    @EnvironmentObject private var data: Feed
     
     init() {
         UITableView.appearance().backgroundColor = .clear
@@ -22,16 +22,18 @@ struct FeedView: View {
     
     @State var isAbout = false
     
-    @State private var isShowing = false
+    @State private var isUpdating = false
+    
+    private let mx = DispatchSemaphore(value: 1)
     
     var body: some View {
     
             VStack(alignment: .center, spacing: 0) {
                 
-                RbcHeaderView(updated: self.data.updeted).frame(height: 100)
+                RbcHeaderView(updated: self.data.pubDate).frame(height: 100)
                     
                 List {
-                    HeadlinesView()
+                    BreakingView()
                         .frame(height: 420)
                         .listRowInsets(EdgeInsets())
                     .padding(.top, 15)
@@ -42,31 +44,37 @@ struct FeedView: View {
                         .foregroundColor(.white)
                     .padding(.top, 15)
                     
-                    ForEach(self.data.feed.keys.sorted().reversed(), id: \.self) { key in
-                        
+                    ForEach(self.data.items.keys.sorted().reversed(), id: \.self) { key in
+                            
                         ZStack {
                             FeedItemView(
-                                title: self.data.feed[key]?.title ,
-                                image: self.data.feed[key]?.image,
-                                pubDate: self.data.feed[key]?.pubDate
+                                title: self.data.items[key]?.title ,
+                                image: self.data.images[key],
+                                pubDate: self.data.items[key]?.pubDate
                             )
                             .frame(height: 100)
                             NavigationLink(
                                 destination: NewsDetailView(
-                                    link:self.data.feed[key]?.link
+                                    link:self.data.items[key]?.link
                                 )
                             ) {
                                 EmptyView()
-                            }.buttonStyle(PlainButtonStyle())
+                            }.buttonStyle(PlainButtonStyle())                            
                         }
-                    }
-                }.pullToRefresh(isShowing: $isShowing) {
-                    loadData(to: self.data)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        self.isShowing = false
+                        
                     }
                 }
-                
+                .pullToRefresh(isShowing: $isUpdating) {
+                    self.data.load(Completor(
+                        onComplete: {
+                            self.isUpdating = false
+                            print("data updating completed")
+                        },
+                        onImagesComplete: {
+                            print("images updating completed")
+                        }
+                    ))
+                }
             }
             .background(
                 RadialGradient(gradient: Gradient(
