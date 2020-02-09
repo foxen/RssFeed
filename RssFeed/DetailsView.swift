@@ -31,8 +31,22 @@ struct WebView: UIViewRepresentable {
     }
 }
 
+struct ActivityViewController: UIViewControllerRepresentable {
 
-struct NewsDetailView: View {
+    var activityItems: [Any]
+    var applicationActivities: [UIActivity]? = nil
+
+    func makeUIViewController(context: UIViewControllerRepresentableContext<ActivityViewController>) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: UIViewControllerRepresentableContext<ActivityViewController>) {}
+
+}
+
+
+struct DetailsView: View {
     var link: String?
     
     var body: some View {
@@ -44,7 +58,7 @@ struct NewsDetailView: View {
 
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
-        NewsDetailView(
+        DetailsView(
             link: "https://www.rbc.ru/rbcfreenews/5e3c02f29a7947be05731d62"
         )
     }
