@@ -44,7 +44,13 @@ struct FeedView: View {
                         .foregroundColor(.white)
                     .padding(.top, 15)
                     
-                    ForEach(self.data.items.keys.sorted().reversed(), id: \.self) { key in
+                    ForEach(
+                        self.data.items
+                            .filter{!$0.value.isBreaking}
+                            .keys
+                            .sorted()
+                            .reversed(),
+                        id: \.self) { key in
                             
                         ZStack {
                             FeedItemView(

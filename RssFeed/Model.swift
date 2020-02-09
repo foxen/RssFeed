@@ -1,6 +1,4 @@
-import Foundation
 import FeedKit
-
 import Combine
 import SwiftUI
 
@@ -9,11 +7,22 @@ struct feedItem: Identifiable {
     
     var id: String
     
+    var isBreaking = false
+    
     var key: String {
         guard let pubDate = self.pubDate else {
             return id
         }
         return "\(Int(pubDate.timeIntervalSince1970))" + id
+    }
+    
+    var isSufficient: Bool {
+            self.title != nil &&
+            self.description != nil &&
+            self.author != nil &&
+            self.link != nil &&
+            self.imageUrl != nil &&
+            self.pubDate != nil
     }
     
     var title: String?
@@ -23,14 +32,35 @@ struct feedItem: Identifiable {
     var pubDate: Date?
     var imageUrl: String?
 
-    func isSufficient() -> Bool {
-        return
-            self.title != nil &&
-            self.description != nil &&
-            self.author != nil &&
-            self.link != nil &&
-            self.imageUrl != nil &&
-            self.pubDate != nil
+}
+
+let data = Feed(for: "http://static.feed.rbc.ru/rbc/logical/footer/news.rss")
+
+final class Feed: ObservableObject {
+    var url: String
+    
+    var totalLimit = 50
+    var breakingsLimit = 10
+    
+    @Published private(set) var pubDate: Date?
+    @Published private(set) var items: [String: feedItem] = [:]
+    @Published private(set) var images: [String: CGImage] = [:]
+
+    private let mx = DispatchSemaphore(value: 1)
+    
+    private var loading = false
+   
+    private var onceFlag = false
+    var atOnce: Bool {
+        mx.wait()
+        defer {
+            self.mx.signal()
+        }
+        return onceFlag
+    }
+    
+    init(for url: String) {
+        self.url = url
     }
 }
 
@@ -76,36 +106,7 @@ enum LoadingError: Error {
     case loading
 }
 
-let data = Feed(for: "http://static.feed.rbc.ru/rbc/logical/footer/news.rss")
-
-final class Feed: ObservableObject {
-    var url: String
-    
-    var totalLimit = 50
-    var breakingsLimit = 10
-    
-    @Published private(set) var pubDate: Date?
-    @Published private(set) var items: [String: feedItem] = [:]
-    @Published private(set) var breakings: [String: feedItem] = [:]
-    @Published private(set) var images: [String: CGImage] = [:]
-
-    private let mx = DispatchSemaphore(value: 1)
-    
-    private var loading = false
-   
-    private var onceFlag = false
-    var atOnce: Bool {
-        mx.wait()
-        defer {
-            self.mx.signal()
-        }
-        return onceFlag
-    }
-    
-    init(for url: String) {
-        self.url = url
-    }
-    
+extension Feed {
     func load(_ completor: Completor) {
         
         guard let url = URL(string: self.url) else {
@@ -125,16 +126,13 @@ final class Feed: ObservableObject {
             return
         }
         
-        let parser = FeedParser(URL: url)
-        
-        parser.parseAsync { (result) in
+        FeedParser(URL: url).parseAsync { (result) in
             
             switch result {
             
             case .success(let feed):
                 
                 var items: [String: feedItem] = [:]
-                var breakings: [String: feedItem] = [:]
                 
                 if let pubDate = feed.rssFeed?.pubDate {
                     DispatchQueue.main.async {
@@ -143,10 +141,10 @@ final class Feed: ObservableObject {
                         self.mx.signal()
                     }
                 }
-                
+                var breakingsCnt = 0
                 feed.rssFeed?.items?.forEach { rssItem in
                     
-                    // fufufu one load limit
+                    // fufufu
                     guard items.count < self.totalLimit else {
                         return
                     }
@@ -158,7 +156,7 @@ final class Feed: ObservableObject {
                         return
                     }
                     
-                    let item = feedItem(
+                    var item = feedItem(
                         id: uuid,
                         title: rssItem.title,
                         link: rssItem.link,
@@ -167,27 +165,28 @@ final class Feed: ObservableObject {
                         author: rssItem.author,
                         pubDate: pubDate,
                         imageUrl: rssItem.enclosure?.attributes?.url
+                        
                     )
                                         
-                    if item.isSufficient() && breakings.count < self.breakingsLimit {
-                        breakings[item.key] = item
-                        return
+                    if item.isSufficient && breakingsCnt < self.breakingsLimit {
+                        item.isBreaking = true
+                        breakingsCnt += 1
                     }
-                    
                     items[item.key] = item
+                    
                 }
-                // упростить
+                
                 let income = Set(items.keys)
                 let presist = Set(self.items.keys)
                 
                 let toAdd = income.subtracting(presist)
                 let toUnset = presist.subtracting(income)
                 
-                let incomeBrekings = Set(breakings.keys)
-                let presistBreakings = Set(self.breakings.keys)
-                
-                let toAddBreakings = incomeBrekings.subtracting(presistBreakings)
-                let toUnsetBreakings = presistBreakings.subtracting(incomeBrekings)
+                let toUnsetBreakings = Set(
+                    self.items.filter{$0.value.isBreaking}.keys
+                ).subtracting(
+                    Set(items.filter{$0.value.isBreaking}.keys)
+                )
                                 
                 DispatchQueue.main.async {
                     self.mx.wait()
@@ -201,15 +200,9 @@ final class Feed: ObservableObject {
                     for k in toUnset {
                         self.items[k] = nil
                     }
-                    for k in toAddBreakings {
-                        guard let item = breakings[k] else {
-                            continue
-                            
-                        }
-                        self.breakings[k] = item
-                    }
                     for k in toUnsetBreakings {
-                        self.breakings[k] = nil
+                        self.items[k]?.isBreaking = false
+                        
                     }
                     
                     self.mx.signal()
@@ -219,26 +212,25 @@ final class Feed: ObservableObject {
                 
                 // fetch image one by one
                 // we are stil in the background thread
-                let allUpdates = toAdd.union(toAddBreakings)
                 var n = 0
-                for k in allUpdates {
+                for k in toAdd {
                     n += 1
-                    guard let _link = items[k]?.imageUrl ?? breakings[k]?.imageUrl else {
-                        continue
-                    }
-                    let link = _link.replacingOccurrences(of: "http:/", with: "https:/")
                     guard
+                        let link = items[k]?.imageUrl?.replacingOccurrences(
+                            of: "http:/", with: "https:/"
+                        ),
                         let url = NSURL(string: link),
                         let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
                         let image = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
                     else {
                         continue
                     }
+                    
                     DispatchQueue.main.async {
                         self.mx.wait()
                         self.images[k] = image
                         self.mx.signal()
-                        if n == allUpdates.count {
+                        if n == toAdd.count {
                             completor.imagesComplete()
                         }
                     }

@@ -28,13 +28,10 @@ struct RbcHeaderView: View {
                     HStack {
                         Spacer()
                         
-                        
-                        
                         Text(makeUpdatedString(self.updated))
                             .foregroundColor(Color(.systemBlue))
                             .font(.caption)
                         }
-                        
                     
                 }.padding(.horizontal, 15)
             }

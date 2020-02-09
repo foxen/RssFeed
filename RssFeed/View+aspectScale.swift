@@ -1,11 +1,3 @@
-//
-//  View+AspectScale.swift
-//  RssFeed
-//
-//  Created by Евгений on 07.02.2020.
-//  Copyright © 2020 Евгений. All rights reserved.
-//
-
 import SwiftUI
 
 extension View {

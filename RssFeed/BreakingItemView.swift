@@ -56,7 +56,7 @@ struct BreakingNewsItemView: View {
                 VStack {
                     Spacer()
                     HStack {
-                        Text(self.data.breakings[self.key]?.title ?? "")
+                        Text(self.data.items[self.key]?.title ?? "")
                             .font(.headline)
                             .shadow(color: Color(.white), radius: 15, x: 0.0, y: 0.0)
                         Spacer()
@@ -64,7 +64,7 @@ struct BreakingNewsItemView: View {
                     HStack {
                         
                         Text(
-                            makeDateString(self.data.breakings[self.key]?.pubDate)
+                            makeDateString(self.data.items[self.key]?.pubDate)
                         )
                         .foregroundColor(Color(.systemBlue))
                         Spacer()
@@ -72,13 +72,13 @@ struct BreakingNewsItemView: View {
                     }.padding(.top, geometry.size.height * 0.02)
                     
                     HStack {
-                        Text(self.data.breakings[self.key]?.description ?? "")
+                        Text(self.data.items[self.key]?.description ?? "")
                         Spacer()
                     }.padding(.top, geometry.size.height * 0.02)
                     
                     HStack {
                         Spacer()
-                        Text(self.data.breakings[self.key]?.author ?? ""
+                        Text(self.data.items[self.key]?.author ?? ""
                         ).foregroundColor(Color(.lightGray))
                     }.padding(.top, geometry.size.height * 0.02)
                 }.padding()
