@@ -20,6 +20,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             )
             self.window = window
             window.makeKeyAndVisible()
+            
+            if #available(iOS 13, *) {
+                window.overrideUserInterfaceStyle = .light
+            }
+            
         }
     }
 

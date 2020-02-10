@@ -60,7 +60,7 @@ struct FeedView: View {
                             )
                             .frame(height: 100)
                             NavigationLink(
-                                destination: NewsDetailView(
+                                destination: DetailsView(
                                     link:self.data.items[key]?.link
                                 )
                             ) {
@@ -99,7 +99,7 @@ struct FeedView: View {
                 .edgesIgnoringSafeArea(.all)
             )
             .navigationBarTitle(
-                Text("Лента новостей").foregroundColor(.white)
+                Text("Лента новостей")
             )
             .navigationBarItems(
                 trailing: AboutButton(deligate: self, color: Color(.white))

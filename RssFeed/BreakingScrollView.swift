@@ -46,7 +46,7 @@ struct BreakingView: View {
                                     }
                                     
                                     NavigationLink(
-                                        destination: NewsDetailView(
+                                        destination: DetailsView(
                                             link: self.data.items[key]!.link
                                         ),
                                         tag: key,

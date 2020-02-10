@@ -36,25 +36,60 @@ struct ActivityViewController: UIViewControllerRepresentable {
     var activityItems: [Any]
     var applicationActivities: [UIActivity]? = nil
 
-    func makeUIViewController(context: UIViewControllerRepresentableContext<ActivityViewController>) -> UIActivityViewController {
-        let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+    func makeUIViewController(
+        context: UIViewControllerRepresentableContext<ActivityViewController>
+    ) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities
+        )
         return controller
     }
 
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: UIViewControllerRepresentableContext<ActivityViewController>) {}
+    func updateUIViewController(
+        _ uiViewController: UIActivityViewController,
+        context: UIViewControllerRepresentableContext<ActivityViewController>
+    ) {}
 
 }
 
 
 struct DetailsView: View {
     var link: String?
+    var title: String?
+    
+    @State var isShare = false
     
     var body: some View {
         VStack {
             WebView(link: link)
-        }.navigationBarTitle(Text(""))
+        }
+        .edgesIgnoringSafeArea(.all)
+        .navigationBarTitle( Text(title ?? "" ))
+        .navigationBarItems(
+            trailing: HStack{
+                Button(action: {
+                    self.isShare.toggle()
+                }) {
+                    Image(systemName: "square.and.arrow.up")
+                        .imageScale(.large)
+                        .accessibility(label: Text("Share"))
+                        .padding()
+                        .foregroundColor(Color(.systemBlue))
+                }.buttonStyle(PlainButtonStyle())
+            }
+        )
+        .sheet(isPresented: $isShare) {
+            ActivityViewController(
+                activityItems: [URL(string: self.link ?? "https://apple.com")!]
+            )
+        }
     }
 }
+
+
+
+
 
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
