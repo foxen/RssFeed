@@ -76,7 +76,7 @@ struct AboutView: View {
                     Text("")
                     .frame(
                         width: geo.size.width,
-                        height: geo.size.height * 0.05
+                        height: geo.size.height * 0.06
                     )
                     .background(
                         LinearGradient(
@@ -95,12 +95,28 @@ struct AboutView: View {
                         )
                         .edgesIgnoringSafeArea(.all)
                     )
+                    
                     Text("")
                     .frame(
                         width: geo.size.width,
                         height: geo.size.height * 0.05
                     )
-                    .background(Color(UIColor(hex: 0x085c89ff)).edgesIgnoringSafeArea(.all)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(
+                                colors: [
+                                    Color(
+                                        UIColor(hex: 0x085c89ff)
+                                    ),
+                                    Color(
+                                        UIColor(hex: 0x003551ff)
+                                    )
+                                ]
+                            ),
+                            startPoint: UnitPoint(x: 0.5,y: 0.0),
+                            endPoint: UnitPoint(x: 0.5, y: 1.0)
+                        )
+                        .edgesIgnoringSafeArea(.all)
                     )
                     
                 }
@@ -114,7 +130,6 @@ struct AboutView: View {
                 }
             }
         }
-        //Text("кузьма с балалайкой")
     }
 }
 

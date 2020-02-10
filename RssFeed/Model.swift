@@ -220,21 +220,31 @@ extension Feed {
                             of: "http:/", with: "https:/"
                         ),
                         let url = NSURL(string: link),
-                        let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
-                        let image = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
+                        let imageSource = CGImageSourceCreateWithURL(
+                            url as NSURL, nil
+                        ),
+                        let image = CGImageSourceCreateImageAtIndex(
+                            imageSource, 0, nil
+                        )
                     else {
                         continue
                     }
                     
                     DispatchQueue.main.async {
                         self.mx.wait()
+                        defer { self.mx.signal() }
+                        
                         self.images[k] = image
-                        self.mx.signal()
-                        if n == toAdd.count {
-                            completor.imagesComplete()
+                        if n < toAdd.count {
+                            return
                         }
+                        for k in toUnset {
+                            self.images[k] = nil
+                        }
+                        completor.imagesComplete()
                     }
                 }
+                
             case .failure(let e):
                 // try next time
                 DispatchQueue.main.async {
