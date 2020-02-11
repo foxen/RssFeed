@@ -5,9 +5,11 @@ struct item: Identifiable {
     var image: CGImage
 }
 
-struct BreakingView: View {
+struct BreakingScrollView: View {
     
-    @EnvironmentObject private var data: Feed
+    var url: String
+    
+    @EnvironmentObject private var data: AppData
     
     @State var action: String? = ""
     
@@ -26,16 +28,17 @@ struct BreakingView: View {
                         alignment: .top, spacing: 0
                     ) {
                         ForEach(
-                            self.data.items
+                            self.data.feeds[self.url]?.items
                                 .filter{$0.value.isBreaking}
                                 .keys.sorted()
-                                .reversed(),
+                                .reversed() ?? [],
                             id: \.self
                         ) { key in
                             ZStack {
-                                if self.data.items[key] != nil {
+                                if self.data.feeds[self.url]?.items[key] != nil {
                                     BreakingNewsItemView(
-                                        key: key
+                                        key: key,
+                                        url: self.url
                                     ).frame(
                                         width: geo.size.height * 0.6
                                     ).padding(.leading, 15)
@@ -47,7 +50,7 @@ struct BreakingView: View {
                                     
                                     NavigationLink(
                                         destination: DetailsView(
-                                            link: self.data.items[key]!.link
+                                            link: self.data.feeds[self.url]?.items[key]?.link
                                         ),
                                         tag: key,
                                         selection: self.$action
@@ -64,12 +67,12 @@ struct BreakingView: View {
     }
 }
 
-struct HeadlinesView_Previews: PreviewProvider {
-    static var previews: some View {
-        BreakingView().previewLayout(.fixed(width: 500, height: 600)).background(Color(
-            .sRGB, red: 1.0, green: 0.35, blue: 0.3
-        ))
-    }
-}
+//struct HeadlinesView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        BreakingView().previewLayout(.fixed(width: 500, height: 600)).background(Color(
+//            .sRGB, red: 1.0, green: 0.35, blue: 0.3
+//        ))
+//    }
+//}
 
 

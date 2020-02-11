@@ -54,24 +54,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         queue.addOperation({
-            data.load(Completor(onComplete: {
-                task.setTaskCompleted(success: true)
-                print("updated in background")
-            }))
+            //
+            print("update in bg started")
+            
+            for (_, feed) in data.feeds {
+               feed.load(Completor(
+                    onComplete: {
+                        task.setTaskCompleted(success: true)
+                        print("updated in bg")
+                    }
+                ))
+            }
         })
     }
     
-    // for test in debugger
-    //e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"rssfeed.update"]
+    // for test in debugger:
+    // e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"com.eugenepolyakov.RssFeed.update"]
     func nextBgFeedUpdateTask() {
         let request = BGAppRefreshTaskRequest(
             identifier: "com.eugenepolyakov.RssFeed.update"
         )
         request.earliestBeginDate = Date(timeIntervalSinceNow: 5 * 60)
-
         do {
             BGTaskScheduler.shared.cancelAllTaskRequests()
             try BGTaskScheduler.shared.submit(request)
+            print("next updated in bg sch-d")
         } catch {
             print("bg sch-r error: \(error)")
         }

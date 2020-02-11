@@ -5,9 +5,14 @@ struct FeedView: View {
 
     @State var action: String? = ""
     
-    @EnvironmentObject private var data: Feed
+    @EnvironmentObject private var data: AppData
     
-    init() {
+    private var url: String
+    
+    init(_ url: String) {
+        
+        self.url = url
+        
         UITableView.appearance().backgroundColor = .clear
         UITableViewCell.appearance().backgroundColor = .clear
         UITableView.appearance().separatorStyle = .none
@@ -19,7 +24,6 @@ struct FeedView: View {
         ]
     }
     
-    
     @State var isAbout = false
     
     @State private var isUpdating = false
@@ -30,12 +34,17 @@ struct FeedView: View {
     
             VStack(alignment: .center, spacing: 0) {
                 
-                RbcHeaderView(updated: self.data.pubDate).frame(height: 100)
+                HeaderView(
+                    url: self.url
+                ).frame(height: 100)
                     
                 List {
-                    BreakingView()
-                        .frame(height: 420)
-                        .listRowInsets(EdgeInsets())
+                    
+                    BreakingScrollView(
+                        url: self.url
+                    )
+                    .frame(height: 420)
+                    .listRowInsets(EdgeInsets())
                     .padding(.top, 15)
                 
                 
@@ -45,23 +54,23 @@ struct FeedView: View {
                     .padding(.top, 15)
                     
                     ForEach(
-                        self.data.items
+                        self.data.feeds[url]?.items
                             .filter{!$0.value.isBreaking}
                             .keys
                             .sorted()
-                            .reversed(),
+                            .reversed() ?? [],
                         id: \.self) { key in
                             
                         ZStack {
                             FeedItemView(
-                                title: self.data.items[key]?.title ,
-                                image: self.data.images[key],
-                                pubDate: self.data.items[key]?.pubDate
+                                title: self.data.feeds[self.url]?.items[key]?.title ,
+                                image: self.data.feeds[self.url]?.images[key],
+                                pubDate: self.data.feeds[self.url]?.items[key]?.pubDate
                             )
                             .frame(height: 100)
                             NavigationLink(
                                 destination: DetailsView(
-                                    link:self.data.items[key]?.link
+                                    link: self.data.feeds[self.url]?.items[key]?.link
                                 )
                             ) {
                                 EmptyView()
@@ -71,7 +80,8 @@ struct FeedView: View {
                     }
                 }
                 .pullToRefresh(isShowing: $isUpdating) {
-                    self.data.load(Completor(
+                    
+                    self.data.feeds[self.url]?.load(Completor(
                         onComplete: {
                             self.isUpdating = false
                             print("data updating completed")
@@ -80,23 +90,27 @@ struct FeedView: View {
                             print("images updating completed")
                         }
                     ))
+                    
                 }
             }
             .background(
-                RadialGradient(gradient: Gradient(
-                    colors: [
-                        Color(
-                            .sRGB, red: 1.0, green: 0.35, blue: 0.3
-                        ),
-                        Color(
-                            .sRGB, red: 0.75, green: 0.8, blue: 1.0
-                        )
-                    ]),
-                    center: UnitPoint(x:0, y:0),
-                    startRadius: 300,
-                    endRadius: 800
-                )
-                .edgesIgnoringSafeArea(.all)
+                GeometryReader { geo in
+                    RadialGradient(gradient: Gradient(
+                        colors: [
+                            Color(
+                                .sRGB, red: 1.0, green: 0.35, blue: 0.3
+                            ),
+                            Color(
+                                .sRGB, red: 0.75, green: 0.8, blue: 1.0
+                            )
+                        ]),
+                        center: UnitPoint(x:0, y:0),
+                        startRadius: geo.size.height * 0.33,
+                        endRadius: geo.size.height
+                    )
+                    .edgesIgnoringSafeArea(.all)
+                    
+                }
             )
             .navigationBarTitle(
                 Text("Лента новостей")
@@ -118,8 +132,8 @@ extension FeedView: AboutButtonDeligate {
 }
 
 
-struct FeedView_Previews: PreviewProvider {
-    static var previews: some View {
-        FeedView()
-    }
-}
+//struct FeedView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        FeedView()
+//    }
+//}

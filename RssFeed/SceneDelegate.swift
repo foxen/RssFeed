@@ -56,6 +56,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
+        print("scene did enter bg fired")
         (UIApplication.shared.delegate as! AppDelegate).nextBgFeedUpdateTask()
     }
     

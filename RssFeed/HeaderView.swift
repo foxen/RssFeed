@@ -2,8 +2,11 @@ import SwiftUI
 
 
 
-struct RbcHeaderView: View {
-    var updated: Date?
+struct HeaderView: View {
+
+    var url: String
+    
+    @EnvironmentObject private var data: AppData
     
     var body: some View {
         
@@ -28,7 +31,7 @@ struct RbcHeaderView: View {
                     HStack {
                         Spacer()
                         
-                        Text(makeUpdatedString(self.updated))
+                        Text(makeUpdatedString(self.data.feeds[self.url]?.pubDate))
                             .foregroundColor(Color(.systemBlue))
                             .font(.caption)
                         }
@@ -43,8 +46,8 @@ struct RbcHeaderView: View {
     
 }
 
-struct HeaderView_Previews: PreviewProvider {
-    static var previews: some View {
-        RbcHeaderView(updated: Date()).previewLayout(.fixed(width: 500, height: 150))
-    }
-}
+//struct HeaderView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        RbcHeaderView(updated: Date()).previewLayout(.fixed(width: 500, height: 150))
+//    }
+//}

@@ -2,49 +2,36 @@ import FeedKit
 import Combine
 import SwiftUI
 
-
-struct feedItem: Identifiable {
+final class Feed: Codable {
     
-    var id: String
+    var store: AppData?
     
-    var isBreaking = false
-    
-    var key: String {
-        guard let pubDate = self.pubDate else {
-            return id
-        }
-        return "\(Int(pubDate.timeIntervalSince1970))" + id
-    }
-    
-    var isSufficient: Bool {
-            self.title != nil &&
-            self.description != nil &&
-            self.author != nil &&
-            self.link != nil &&
-            self.imageUrl != nil &&
-            self.pubDate != nil
-    }
-    
-    var title: String?
-    var link: String?
-    var description: String?
-    var author: String?
-    var pubDate: Date?
-    var imageUrl: String?
-
-}
-
-let data = Feed(for: "http://static.feed.rbc.ru/rbc/logical/footer/news.rss")
-
-final class Feed: ObservableObject {
     var url: String
     
     var totalLimit = 50
     var breakingsLimit = 10
     
-    @Published private(set) var pubDate: Date?
-    @Published private(set) var items: [String: feedItem] = [:]
-    @Published private(set) var images: [String: CGImage] = [:]
+    //var symbol: AnyView?
+    var localTitle: String?
+    
+    var title: String?
+    var pubDate: Date?
+    
+    var imageTitle: String?
+    var imageUrl: String?
+    
+    private(set) var imageImage: CGImage? // плучить
+    
+    enum CodingKeys: String, CodingKey {
+        case url
+        case localTitle
+        case title
+        case imageTitle
+        case imageUrl
+    }
+    
+    private(set) var items: [String: FeedItem] = [:]
+    private(set) var images: [String: CGImage] = [:]
 
     private let mx = DispatchSemaphore(value: 1)
     
@@ -64,49 +51,13 @@ final class Feed: ObservableObject {
     }
 }
 
-struct Completor {
-   
-   var onComplete: (()->Void)?
-   var onError: ((Error)->Void)?
-   var onSuccess: (()->Void)?
-   var onImagesComplete: (()->Void)?
-    
-    func complete() {
-        if let onComplete = self.onComplete {
-            onComplete()
-        }
-    }
-    func error(_ e: Error) {
-        if let onError = self.onError {
-            onError(e)
-        }
-    }
-    func success() {
-        if let onSuccess = self.onSuccess {
-            onSuccess()
-        }
-    }
-    func imagesComplete() {
-        if let onImagesComplete = self.onImagesComplete {
-            onImagesComplete()
-        }
-    }
-    func successfullyComplete() {
-        success()
-        complete()
-    }
-    func unsuccessfullyComplete(_ e: Error) {
-        error(e)
-        complete()
-    }
-}
-
 enum LoadingError: Error {
     case incorrectUrl(_ url: String)
     case loading
 }
 
 extension Feed {
+    
     func load(_ completor: Completor) {
         
         guard let url = URL(string: self.url) else {
@@ -132,13 +83,17 @@ extension Feed {
             
             case .success(let feed):
                 
-                var items: [String: feedItem] = [:]
+                var items: [String: FeedItem] = [:]
                 
                 if let pubDate = feed.rssFeed?.pubDate {
                     DispatchQueue.main.async {
                         self.mx.wait()
-                        data.pubDate = pubDate
+                        
+                        // и остальное
+                        
+                        self.pubDate = pubDate
                         self.mx.signal()
+                        
                     }
                 }
                 var breakingsCnt = 0
@@ -156,7 +111,7 @@ extension Feed {
                         return
                     }
                     
-                    var item = feedItem(
+                    var item = FeedItem(
                         id: uuid,
                         title: rssItem.title,
                         link: rssItem.link,

@@ -16,7 +16,7 @@ struct RbcLogoSymbol: View {
     }
 }
 
-fileprivate struct paths: View {
+struct paths: View {
     
     var width, lineWidth: CGFloat
     var topLeftColor: UInt64, bottomRightColor: UInt64

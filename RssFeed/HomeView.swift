@@ -5,13 +5,20 @@ struct HomeView: View {
     
     @State var isAbout = false
     
-    @EnvironmentObject private var data: Feed
+    @EnvironmentObject private var data: AppData
     
     var body: some View {
         NavigationView {
             List {
-                NavigationLink(destination: FeedView()) {
-                    RbcHeaderView(updated: data.pubDate).frame(height: 100)
+                
+                ForEach(
+                    self.data.feeds.keys.sorted(),
+                    id: \.self
+                
+                ) { url in
+                    NavigationLink(destination: FeedView(url)) {
+                        HeaderView(url: url).frame(height: 100)
+                    }
                 }
             }
             .navigationBarTitle(
@@ -23,15 +30,18 @@ struct HomeView: View {
             .sheet(isPresented: $isAbout) {
                 AboutView()
             }
-        }.onAppear {
-            
-            guard !self.data.atOnce else {
-                return
+        }
+        .onAppear {
+            for (k, feed) in self.data.feeds {
+                guard !feed.atOnce else {
+                    return
+                }
+                
+                self.data.feeds[k]?.load(Completor(
+                    onComplete: {},
+                    onImagesComplete: {}
+                ))
             }
-            self.data.load(Completor(
-                onComplete: {},
-                onImagesComplete: {}
-            ))
         }
     }
 }
