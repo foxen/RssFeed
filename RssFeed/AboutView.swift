@@ -49,8 +49,6 @@ struct AboutView: View {
                         .edgesIgnoringSafeArea(.all)
                     )
                     
-                    
-                    
                     Text("")
                     .frame(
                         width: geo.size.width,
@@ -73,6 +71,7 @@ struct AboutView: View {
                         )
                         .edgesIgnoringSafeArea(.all)
                     )
+                    
                     Text("")
                     .frame(
                         width: geo.size.width,
@@ -120,14 +119,13 @@ struct AboutView: View {
                     )
                     
                 }
-                VStack {
-                    Image("notenough")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(
-                        height: geo.size.height * 0.55
-                    )
-                }
+                Image("notenough")
+                .resizable()
+                .scaledToFit()
+                .frame(
+                    height: geo.size.height * 0.55
+                )
+                
             }
         }
     }

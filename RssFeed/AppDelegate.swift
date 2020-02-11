@@ -12,53 +12,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         
         BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: "com.eugenepolyakov.RssFeed.feedupdate",
-            using: DispatchQueue.global()
+            forTaskWithIdentifier: "com.eugenepolyakov.RssFeed.update",
+            using: nil
         ) { task in
-
-            let queue = OperationQueue()
-            queue.maxConcurrentOperationCount = 1
-
-            queue.addOperation {
-                task.setTaskCompleted(success: true)
-            }
-
-            task.expirationHandler = {
-                queue.cancelAllOperations()
-            }
-
-            data.load(Completor(onComplete: { print("from back") }))
-
-            let lastOperation = queue.operations.last
-            lastOperation?.completionBlock = {
-                task.setTaskCompleted(success: !(lastOperation?.isCancelled ?? false))
-            }
-
-            task.setTaskCompleted(success: true)
-
-            self.nextFeedUpdateTask()
+            self.bgFeedUpdateTaskHandler(task as! BGAppRefreshTask)
         }
+        
         return true
     }
     
-    func applicationDidEnterBackground(_ application: UIApplication) {
-        BGTaskScheduler.shared.cancelAllTaskRequests()
-        nextFeedUpdateTask()
-    }
-    
-    func nextFeedUpdateTask() {
-        let request = BGAppRefreshTaskRequest(
-            identifier: "com.eugenepolyakov.RssFeed.feedupdate"
-        )
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 60 * 5)
-        do {
-            try BGTaskScheduler.shared.submit(request)
-        } catch {
-            // тыц
-            print(error)
-        }
-    }
-
     // MARK: UISceneSession Lifecycle
 
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
@@ -72,7 +34,47 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
+    
+    func bgFeedUpdateTaskHandler(_ task: BGAppRefreshTask) {
+        
+        self.nextBgFeedUpdateTask()
+        
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
+        
+        
+        task.expirationHandler = {
+            queue.cancelAllOperations()
+        }
+        
+        let lastOperation = queue.operations.last
+        
+        lastOperation?.completionBlock = {
+            task.setTaskCompleted(success: !(lastOperation?.isCancelled ?? false))
+        }
+        
+        queue.addOperation({
+            data.load(Completor(onComplete: {
+                task.setTaskCompleted(success: true)
+                print("updated in background")
+            }))
+        })
+    }
+    
+    // for test in debugger
+    //e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"rssfeed.update"]
+    func nextBgFeedUpdateTask() {
+        let request = BGAppRefreshTaskRequest(
+            identifier: "com.eugenepolyakov.RssFeed.update"
+        )
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 5 * 60)
 
+        do {
+            BGTaskScheduler.shared.cancelAllTaskRequests()
+            try BGTaskScheduler.shared.submit(request)
+        } catch {
+            print("bg sch-r error: \(error)")
+        }
+    }
 
 }
-

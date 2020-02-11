@@ -1,11 +1,3 @@
-//
-//  DetailView.swift
-//  RssFeed
-//
-//  Created by Евгений on 07.02.2020.
-//  Copyright © 2020 Евгений. All rights reserved.
-//
-
 import SwiftUI
 
 import SwiftUI
@@ -81,7 +73,7 @@ struct DetailsView: View {
         )
         .sheet(isPresented: $isShare) {
             ActivityViewController(
-                activityItems: [URL(string: self.link ?? "https://apple.com")!]
+                activityItems: [URL(string: self.link ?? "")!]
             )
         }
     }

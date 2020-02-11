@@ -5,6 +5,7 @@ struct FeedItemView: View {
     var title: String?
     var image: CGImage?
     var pubDate: Date?
+    
     var body: some View {
         
             VStack {
