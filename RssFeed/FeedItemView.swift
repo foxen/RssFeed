@@ -11,8 +11,8 @@ struct FeedItemView: View {
             VStack {
                 HStack {
                     Spacer()
-                    Text(makeDateString(self.pubDate))
-                        .foregroundColor(Color(.systemBlue))
+                    Text(self.pubDate?.formatted("dd.MM.yy HH:mm") ?? "")
+                        .foregroundColor(Color(.darkGray))
                         .font(.caption)
                         .padding(.bottom, -5)
                 }
@@ -28,7 +28,8 @@ struct FeedItemView: View {
                             srcW: CGFloat(self.image!.width),
                             srcH: CGFloat(self.image!.height),
                             dstW: geo.size.width * 0.25,
-                            dstH: geo.size.height
+                            dstH: geo.size.height,
+                            fitByWidth: false
                         ).padding(.trailing, -15)
                     }
                     if self.title != nil {

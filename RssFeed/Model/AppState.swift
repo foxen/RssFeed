@@ -1,12 +1,19 @@
-import Foundation
+import SwiftUI
 
-let rbcUrl = "http://static.feed.rbc.ru/rbc/logical/footer/news.rss"
+let defaultFeedUrl = "http://static.feed.rbc.ru/rbc/logical/footer/news.rss"
+let defaultFeedTitle = "РБК"
 
-let data = AppData()
+let data = AppState()
 
-final class AppData: ObservableObject {
+let ny  = "https://www.nytimes.com/svc/collections/v1/publish/https://www.nytimes.com/section/world/rss.xml"
+let al = "https://www.aljazeera.com/xml/rss/all.xml"
+
+final class AppState: ObservableObject {
     
     @Published private(set) var feeds: [String: Feed] = [:]
+    @Published var titles: [String: String] = [:]
+    @Published var pubDates: [String: Date] = [:]
+    @Published var images: [String: CGImage] = [:]
     
     var defaults = UserDefaults.standard
     
@@ -24,11 +31,14 @@ final class AppData: ObservableObject {
         }
         
         if feeds.count == 0 {
-            let defaultFeed = Feed(for: rbcUrl)
-            defaultFeed.localTitle = "РБК - Все материалы"
-            feeds = [rbcUrl: defaultFeed]
+            let defaultFeed = Feed(for: defaultFeedUrl)
+            defaultFeed.title = defaultFeedTitle
+            feeds = [defaultFeedUrl: defaultFeed]
             save()
         }
+        
+//        feeds[ny] = Feed(for: ny)
+//        feeds[al] = Feed(for: al)
         
         for (_, feed) in feeds {
             feed.store = self
@@ -55,6 +65,10 @@ final class AppData: ObservableObject {
         mx.wait()
         
         self.feeds[url] = nil
+        titles[url] = nil
+        pubDates[url] = nil
+        images[url] = nil
+    
         save()
         
         mx.signal()
@@ -62,9 +76,18 @@ final class AppData: ObservableObject {
     
     func update(_ url: String) {
         mx.wait()
+        
+        titles[url] = feeds[url]?.title
+        pubDates[url] = feeds[url]?.pubDate
+        images[url] = feeds[url]?.image
+        
+        save()
+        
+        print("updated")
+        
         mx.signal()
-        mx.wait()
     }
+    
 }
 
 

@@ -2,16 +2,15 @@ import FeedKit
 import Combine
 import SwiftUI
 
-final class Feed: Codable {
+final class Feed: ObservableObject, Codable {
     
-    var store: AppData?
+    var store: AppState?
     
     var url: String
     
     var totalLimit = 50
     var breakingsLimit = 10
     
-    //var symbol: AnyView?
     var localTitle: String?
     
     var title: String?
@@ -20,18 +19,21 @@ final class Feed: Codable {
     var imageTitle: String?
     var imageUrl: String?
     
-    private(set) var imageImage: CGImage? // плучить
+    private(set) var image: CGImage?
     
     enum CodingKeys: String, CodingKey {
         case url
-        case localTitle
         case title
+        case pubDate
         case imageTitle
         case imageUrl
+        
     }
     
     private(set) var items: [String: FeedItem] = [:]
     private(set) var images: [String: CGImage] = [:]
+    
+    private(set) var isWithBreakings: Bool = true
 
     private let mx = DispatchSemaphore(value: 1)
     
@@ -85,27 +87,46 @@ extension Feed {
                 
                 var items: [String: FeedItem] = [:]
                 
-                if let pubDate = feed.rssFeed?.pubDate {
+                if let feed = feed.rssFeed {
+                    
                     DispatchQueue.main.async {
                         self.mx.wait()
                         
-                        // и остальное
+                        self.title = feed.title ?? self.title
+                        self.imageUrl = feed.image?.url
+                        self.pubDate = feed.pubDate ?? Date()
                         
-                        self.pubDate = pubDate
                         self.mx.signal()
                         
+                        if self.image == nil,
+                            let link = self.imageUrl?.replacingOccurrences(
+                                of: "http:/", with: "https:/"
+                            ),
+                            let url = NSURL(string: link),
+                            let imageSource = CGImageSourceCreateWithURL(
+                                url as NSURL, nil
+                            ),
+                            let image = CGImageSourceCreateImageAtIndex(
+                                imageSource, 0, nil
+                            )
+                        {
+                            self.image = image
+                        }
+                        
+                        self.store?.update(self.url)
                     }
+                    
                 }
                 var breakingsCnt = 0
                 feed.rssFeed?.items?.forEach { rssItem in
                     
-                    // fufufu
+//                     fufufu
                     guard items.count < self.totalLimit else {
                         return
                     }
                     
                     guard
-                        let uuid = rssItem.guid?.value,
+                        let uuid = rssItem.guid?.value ?? rssItem.link,
                         let pubDate = rssItem.pubDate
                     else {
                         return
@@ -159,6 +180,8 @@ extension Feed {
                         self.items[k]?.isBreaking = false
                         
                     }
+                    
+                    self.isWithBreakings = breakingsCnt > 0
                     
                     self.mx.signal()
                     

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct RbcLogoSymbol: View {
+struct DefaultLogoSymbol: View {
     var body: some View {
         GeometryReader { geometry in
             paths(
@@ -56,6 +56,6 @@ struct paths: View {
 
 struct RbcLogoSymbol_Previews: PreviewProvider {
     static var previews: some View {
-        RbcLogoSymbol().previewLayout(.fixed(width: 200, height: 200))
+        DefaultLogoSymbol().previewLayout(.fixed(width: 200, height: 200))
     }
 }

@@ -5,14 +5,21 @@ extension View {
         srcW: CGFloat,
         srcH: CGFloat,
         dstW: CGFloat,
-        dstH: CGFloat
+        dstH: CGFloat,
+        fitByWidth: Bool
     ) -> some View {
         
-        let ratio = srcH / srcW > dstH / dstW ? dstW / srcW : dstH / srcH
+        let ratio = (srcH / srcW) > (dstH / dstW)
+            ? fitByWidth ? dstH / srcH : dstW / srcW
+            : fitByWidth ? dstW / srcW : dstH / srcH 
+        
         
         return self.frame(
             width: srcW * ratio,
             height: srcH * ratio
-        ).frame(width: dstW, height: dstH).clipped()
+        ).frame(
+            width: dstW,
+            height: dstH
+        ).clipped()
     }
 }

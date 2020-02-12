@@ -5,7 +5,15 @@ struct FeedView: View {
 
     @State var action: String? = ""
     
-    @EnvironmentObject private var data: AppData
+    @EnvironmentObject private var data: AppState
+    
+    @Environment(\.presentationMode) var presentationMode
+    
+    @State var isAbout = false
+    @State private var isUpdating = false
+    @State var isDelete = false
+    
+    //private let mx = DispatchSemaphore(value: 1)
     
     private var url: String
     
@@ -24,34 +32,33 @@ struct FeedView: View {
         ]
     }
     
-    @State var isAbout = false
-    
-    @State private var isUpdating = false
-    
-    private let mx = DispatchSemaphore(value: 1)
-    
     var body: some View {
     
             VStack(alignment: .center, spacing: 0) {
                 
                 HeaderView(
-                    url: self.url
+                    url: self.url,
+                    isDefault: self.url == defaultFeedUrl
                 ).frame(height: 100)
+                .onLongPressGesture{
+                    self.isDelete.toggle()
+                }
                     
                 List {
+                    if self.data.feeds[self.url]?.isWithBreakings ?? false {
+                        BreakingScrollView(
+                            url: self.url
+                        )
+                        .frame(height: 420)
+                        .listRowInsets(EdgeInsets())
+                        .padding(.top, 15)
                     
-                    BreakingScrollView(
-                        url: self.url
-                    )
-                    .frame(height: 420)
-                    .listRowInsets(EdgeInsets())
-                    .padding(.top, 15)
-                
-                
-                    Text("К другим событиям")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    .padding(.top, 15)
+                    
+                        Text("К другим событиям")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        .padding(.top, 15)
+                    }
                     
                     ForEach(
                         self.data.feeds[url]?.items
@@ -116,10 +123,22 @@ struct FeedView: View {
                 Text("Лента новостей")
             )
             .navigationBarItems(
-                trailing: AboutButton(deligate: self, color: Color(.white))
+                trailing: AboutButton(deligate: self, color: Color(.systemBlue))
             )
             .sheet(isPresented: $isAbout) {
                 AboutView()
+            }
+            .actionSheet(isPresented: $isDelete){
+                ActionSheet(title: Text("Удаление ленты"), message: Text("вы действительно хотите удалить эту ленту?"), buttons: [
+                    .destructive(Text("Удалить")) {
+                        self.data.remove(self.url)
+                        self.isDelete = false
+                        self.presentationMode.wrappedValue.dismiss()
+                    },
+                    .cancel(Text("Отмена")) {
+                        self.isDelete = false
+                    }
+                ])
             }
         }
     
@@ -132,8 +151,4 @@ extension FeedView: AboutButtonDeligate {
 }
 
 
-//struct FeedView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        FeedView()
-//    }
-//}
+//

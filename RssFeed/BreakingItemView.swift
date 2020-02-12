@@ -6,7 +6,7 @@ struct BreakingNewsItemView: View {
     
     var url: String
     
-    @EnvironmentObject private var data: AppData
+    @EnvironmentObject private var data: AppState
     
     let scale: CGFloat = 0.5
     
@@ -23,7 +23,8 @@ struct BreakingNewsItemView: View {
                                         srcW: CGFloat(self.data.feeds[self.url]!.images[self.key]!.width),
                                         srcH: CGFloat(self.data.feeds[self.url]!.images[self.key]!.height),
                                         dstW: geometry.size.width,
-                                        dstH: geometry.size.height * self.scale
+                                        dstH: geometry.size.height * self.scale,
+                                        fitByWidth: false
                                     )
                                 
                             }
@@ -66,7 +67,10 @@ struct BreakingNewsItemView: View {
                     HStack {
                         
                         Text(
-                            makeDateString(self.data.feeds[self.url]?.items[self.key]?.pubDate)
+                            self.data.feeds[self.url]?
+                                .items[self.key]?.pubDate?
+                                    .formatted("dd.MM.yy HH:mm")
+                            ?? ""
                         )
                         .foregroundColor(Color(.systemBlue))
                         Spacer()
@@ -95,12 +99,3 @@ struct BreakingNewsItemView: View {
         
     }
 }
-
-//struct BreakingNewsItemView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        BreakingNewsItemView(key: "123")
-//            .previewLayout(.fixed(width: 300, height: 600)).background(Color(
-//            .sRGB, red: 1.0, green: 0.35, blue: 0.3
-//        ))
-//    }
-//}
