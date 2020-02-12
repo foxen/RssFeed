@@ -49,7 +49,7 @@ struct HeaderView: View {
                     HStack {
                         Text(
                             self.data.titles[self.url] ?? ""
-                        ).font(.title)
+                        ).font(.headline)
                         Spacer()
                     }
                     Spacer()
