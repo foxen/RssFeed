@@ -5,6 +5,7 @@ struct HomeView: View {
     
     @State var isAbout = false
     @State var isAdd = false
+    
     @State var newFeed = ""
     
     @EnvironmentObject private var data: AppState
@@ -57,13 +58,8 @@ struct HomeView: View {
                 Text("Новостные ленты")
             )
             .navigationBarItems(
-                trailing: AboutButton(
-                    deligate: self, color: Color(.systemBlue)
-                )
+                trailing: AboutButton(deligate: self, color: Color(.systemBlue))
             )
-            .sheet(isPresented: $isAbout) {
-                AboutView()
-            }
             .sheet(isPresented: $isAdd) {
                 VStack {
                     Form {
@@ -96,7 +92,7 @@ struct HomeView: View {
                     }
                     Spacer()
                 }
-                
+
             }
         }
         .onAppear {
@@ -111,6 +107,9 @@ struct HomeView: View {
                     }
                 ))
             }
+        }
+        .sheet(isPresented: $isAbout) {
+            AboutView()
         }
     }
 }
